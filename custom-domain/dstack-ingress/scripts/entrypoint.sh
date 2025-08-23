@@ -70,6 +70,31 @@ server {
     # Disable SSL renegotiation
     ssl_early_data off;
 
+    # WebSocket support - handles both /ws/ and /socket.io/ paths
+    location ~ ^/(ws|socket\.io)/ {
+        ${PROXY_CMD}_pass ${TARGET_ENDPOINT};
+        ${PROXY_CMD}_http_version 1.1;
+        ${PROXY_CMD}_set_header Upgrade \$http_upgrade;
+        ${PROXY_CMD}_set_header Connection "upgrade";
+        ${PROXY_CMD}_set_header Host \$host;
+        ${PROXY_CMD}_set_header X-Real-IP \$remote_addr;
+        ${PROXY_CMD}_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        ${PROXY_CMD}_set_header X-Forwarded-Proto \$scheme;
+        ${PROXY_CMD}_cache_bypass \$http_upgrade;
+
+        # Socket.IO optimized timeouts
+        ${PROXY_CMD}_read_timeout 3600;    # 1 hour
+        ${PROXY_CMD}_send_timeout 3600;    # 1 hour
+        ${PROXY_CMD}_connect_timeout 60;   # 1 minute
+
+        # Performance optimizations
+        ${PROXY_CMD}_buffering off;
+        ${PROXY_CMD}_request_buffering off;
+        ${PROXY_CMD}_tcp_nodelay on;
+        ${PROXY_CMD}_tcp_nopush off;
+    }
+
+    # Regular HTTP requests
     location / {
         ${PROXY_CMD}_pass ${TARGET_ENDPOINT};
         ${PROXY_CMD}_set_header Host \$host;
