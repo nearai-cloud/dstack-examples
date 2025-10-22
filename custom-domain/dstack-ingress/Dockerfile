@@ -38,9 +38,7 @@ RUN mkdir -p \
     /var/log/nginx
 
 COPY ./scripts /scripts/
-RUN find /scripts -type f -exec chmod 0664 {} + && \
-    find /scripts -type d -exec chmod 0775 {} +
-# RUN chmod +x /scripts/*.sh /scripts/*.py
+RUN chmod +x /scripts/*.sh /scripts/*.py
 ENV PATH="/scripts:$PATH"
 ENV PYTHONPATH="/scripts"
 COPY --chmod=664 .GIT_REV /etc/
