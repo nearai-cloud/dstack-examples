@@ -1,12 +1,6 @@
 FROM nginx@sha256:b6653fca400812e81569f9be762ae315db685bc30b12ddcdc8616c63a227d3ca
 
-ARG SOURCE_DATE_EPOCH=1700000000
-ENV SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH \
-    PYTHONHASHSEED=0 \
-    TZ=UTC LANG=C.UTF-8
-
-COPY pinned-packages.txt /tmp/
-RUN find /tmp -exec touch -m -d "@$SOURCE_DATE_EPOCH" {} +
+COPY --chmod=644 pinned-packages.txt /tmp/
 
 RUN set -e; \
     # Create a sources.list file pointing to a specific snapshot
@@ -36,10 +30,6 @@ RUN set -e; \
         coreutils && \
         rm -rf /var/lib/apt/lists/* /var/log/* /var/cache/ldconfig/aux-cache /tmp/pinned-packages.txt
 
-# Normalize Python file timestamps
-RUN find /usr/lib/python3 /usr/lib/python3.11 -type f -exec touch -m -d "@$SOURCE_DATE_EPOCH" {} + \
- && find /usr/lib/python3 /usr/lib/python3.11 -type d -exec touch -m -d "@$SOURCE_DATE_EPOCH" {} +
-
 RUN mkdir -p \
     /etc/letsencrypt \
     /var/www/certbot \
@@ -51,15 +41,10 @@ COPY ./scripts /scripts/
 RUN chmod +x /scripts/*.sh /scripts/*.py
 ENV PATH="/scripts:$PATH"
 ENV PYTHONPATH="/scripts"
-COPY .GIT_REV /etc/
+COPY --chmod=664 .GIT_REV /etc/
 
-# Touch folders
-RUN touch -m -d "@$SOURCE_DATE_EPOCH" \
-    /etc/letsencrypt \
-    /var/www/certbot \
-    /usr/share/nginx/html \
-    /etc/nginx/conf.d \
-    /var/log/nginx
+RUN find /scripts -type f -exec chmod 0664 {} + && \
+    find /scripts -type d -exec chmod 0775 {} +
 
 ENTRYPOINT ["/scripts/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

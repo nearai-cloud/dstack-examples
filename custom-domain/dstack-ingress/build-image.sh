@@ -31,7 +31,7 @@ git rev-parse HEAD > .GIT_REV
 TEMP_TAG="dstack-ingress-temp:$(date +%s)"
 docker buildx build --builder buildkit_20 --no-cache --build-arg SOURCE_DATE_EPOCH="0" \
     --output type=oci,dest=./oci.tar,rewrite-timestamp=true \
-    --output type=docker,name="$TEMP_TAG" .
+    --output type=docker,name="$TEMP_TAG",rewrite-timestamp=true .
 
 if [ "$?" -ne 0 ]; then
     echo "Build failed"
