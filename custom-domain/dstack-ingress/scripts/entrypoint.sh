@@ -176,13 +176,11 @@ set_caa_record() {
         echo "Skipping CAA record setup"
         return
     fi
-    local ACCOUNT_URI
-    ACCOUNT_URI=$(jq -j '.uri' /etc/letsencrypt/accounts/acme-v02.api.letsencrypt.org/directory/*/regr.json)
-    echo "Adding CAA record for $domain, accounturi=$ACCOUNT_URI"
+    echo "Adding CAA record for $domain"
     dnsman.py set_caa \
         --domain "$domain" \
         --caa-tag "issue" \
-        --caa-value "letsencrypt.org;validationmethods=dns-01;accounturi=$ACCOUNT_URI"
+        --caa-value "letsencrypt.org;validationmethods=dns-01"
 
     if [ $? -ne 0 ]; then
         echo "Warning: Failed to set CAA record for $domain"
